@@ -31,14 +31,14 @@ Sustainability-Intelligence-Platform/
 
 ## 🛠️ Tech Stack
 
-| Component | Technology | Owner |
-|-----------|------------|-------|
-| **Backend** | Python (FastAPI) | Zeeshan |
-| **Frontend** | React + Next.js + Recharts/Plotly | Ahlam |
-| **Database** | Supabase | - |
-| **AI Component** | OpenAI API + LangChain | - |
-| **ML Component** | Python ML libraries (scikit-learn, Prophet) | - |
-| **Version Control** | GitHub | Ahmed |
+| Component | Technology |
+|-----------|------------|
+| **Backend** | Python (FastAPI) | 
+| **Frontend** | React + Next.js + Recharts/Plotly |
+| **Database** | Supabase |
+| **AI Component** | OpenAI API + LangChain |
+| **ML Component** | Python ML libraries (scikit-learn, Prophet) |
+| **Version Control** | GitHub |
 
 ## 🚀 Quick Start
 
@@ -121,7 +121,8 @@ Sustainability-Intelligence-Platform/
 
 - **Zeeshan**: Backend (Python FastAPI)
 - **Ahlam**: Frontend (React + Next.js)
-- **Ahmed**: Version Control & CI/CD
+- **Ahmed**: Full-stack, Version Control & CI/CD
+- **Azeem**: Full-stack, Version Control & CI/CD
 - **All Members**: Pitch/Presentation
 
 ## 📈 Development Timeline
