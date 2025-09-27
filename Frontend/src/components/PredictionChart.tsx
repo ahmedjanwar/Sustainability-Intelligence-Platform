@@ -72,39 +72,46 @@ export const PredictionChart: React.FC<PredictionChartProps> = ({ predictions })
             <CardTitle className="text-lg">Model Predictions Comparison</CardTitle>
           </div>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={comparisonData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="days_ahead"
-                label={{ value: 'Days Ahead', position: 'insideBottom', offset: -10 }}
-                fontSize={12}
-              />
-              <YAxis 
-                label={{ value: 'Predicted Value', angle: -90, position: 'insideLeft' }}
-              />
-              <Tooltip 
-                formatter={(value: number, name: string) => [
-                  value.toLocaleString(),
-                  name.toUpperCase()
-                ]}
-                labelFormatter={(label) => `Day ${label}`}
-              />
-              <Legend />
-              {modelNames.map((modelName) => (
-                <Line 
-                  key={modelName}
-                  type="monotone" 
-                  dataKey={modelName} 
-                  stroke={getModelColor(modelName)}
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                  name={modelName.toUpperCase()}
+        <CardContent className="p-8">
+          <div className="h-[500px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart 
+                data={comparisonData}
+                margin={{ top: 50, right: 80, left: 80, bottom: 80 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="days_ahead"
+                  label={{ value: 'Days Ahead', position: 'insideBottom', offset: -40 }}
+                  fontSize={12}
+                  tick={{ fontSize: 11 }}
                 />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
+                <YAxis 
+                  label={{ value: 'Predicted Value', angle: -90, position: 'insideLeft', offset: -40 }}
+                  tick={{ fontSize: 11 }}
+                />
+                <Tooltip 
+                  formatter={(value: number, name: string) => [
+                    value.toLocaleString(),
+                    name.toUpperCase()
+                  ]}
+                  labelFormatter={(label) => `Day ${label}`}
+                />
+                <Legend />
+                {modelNames.map((modelName) => (
+                  <Line 
+                    key={modelName}
+                    type="monotone" 
+                    dataKey={modelName} 
+                    stroke={getModelColor(modelName)}
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    name={modelName.toUpperCase()}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
 
@@ -113,39 +120,46 @@ export const PredictionChart: React.FC<PredictionChartProps> = ({ predictions })
         <CardHeader>
           <CardTitle className="text-lg">Model Performance Summary</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={modelComparisonData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="model" 
-                fontSize={12}
-              />
-              <YAxis 
-                label={{ value: 'Average Prediction', angle: -90, position: 'insideLeft' }}
-              />
-              <Tooltip 
-                formatter={(value: number, name: string) => [
-                  value.toLocaleString(),
-                  name === 'avgPrediction' ? 'Average Prediction' : 'Latest Prediction'
-                ]}
-                labelFormatter={(label) => `Model: ${label}`}
-              />
-              <Legend />
-              <Bar 
-                dataKey="avgPrediction" 
-                fill="#3b82f6"
-                radius={[4, 4, 0, 0]}
-                name="Average Prediction"
-              />
-              <Bar 
-                dataKey="latestPrediction" 
-                fill="#10b981"
-                radius={[4, 4, 0, 0]}
-                name="Latest Prediction"
-              />
-            </BarChart>
-          </ResponsiveContainer>
+        <CardContent className="p-8">
+          <div className="h-[400px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart 
+                data={modelComparisonData}
+                margin={{ top: 50, right: 80, left: 80, bottom: 80 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="model" 
+                  fontSize={12}
+                  tick={{ fontSize: 11 }}
+                />
+                <YAxis 
+                  label={{ value: 'Average Prediction', angle: -90, position: 'insideLeft', offset: -40 }}
+                  tick={{ fontSize: 11 }}
+                />
+                <Tooltip 
+                  formatter={(value: number, name: string) => [
+                    value.toLocaleString(),
+                    name === 'avgPrediction' ? 'Average Prediction' : 'Latest Prediction'
+                  ]}
+                  labelFormatter={(label) => `Model: ${label}`}
+                />
+                <Legend />
+                <Bar 
+                  dataKey="avgPrediction" 
+                  fill="#3b82f6"
+                  radius={[4, 4, 0, 0]}
+                  name="Average Prediction"
+                />
+                <Bar 
+                  dataKey="latestPrediction" 
+                  fill="#10b981"
+                  radius={[4, 4, 0, 0]}
+                  name="Latest Prediction"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
 
@@ -157,46 +171,52 @@ export const PredictionChart: React.FC<PredictionChartProps> = ({ predictions })
               {modelName.toUpperCase()} Predictions
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart
-                data={modelPredictions.map(p => ({
-                  days_ahead: p.days_ahead,
-                  date: new Date(p.date).toLocaleDateString(),
-                  prediction: p.prediction,
-                }))}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="days_ahead"
-                  label={{ value: 'Days Ahead', position: 'insideBottom', offset: -10 }}
-                  fontSize={12}
-                />
-                <YAxis 
-                  label={{ 
-                    value: 'Predicted Value', 
-                    angle: -90, 
-                    position: 'insideLeft' 
-                  }}
-                />
-                <Tooltip 
-                  formatter={(value: number) => [
-                    value.toLocaleString(),
-                    'Prediction'
-                  ]}
-                  labelFormatter={(label) => `Day ${label}`}
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="prediction" 
-                  stroke={getModelColor(modelName)}
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                  name="Prediction"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <CardContent className="p-8">
+            <div className="h-[400px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={modelPredictions.map(p => ({
+                    days_ahead: p.days_ahead,
+                    date: new Date(p.date).toLocaleDateString(),
+                    prediction: p.prediction,
+                  }))}
+                  margin={{ top: 50, right: 80, left: 80, bottom: 80 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="days_ahead"
+                    label={{ value: 'Days Ahead', position: 'insideBottom', offset: -40 }}
+                    fontSize={12}
+                    tick={{ fontSize: 11 }}
+                  />
+                  <YAxis 
+                    label={{ 
+                      value: 'Predicted Value', 
+                      angle: -90, 
+                      position: 'insideLeft',
+                      offset: -20
+                    }}
+                    tick={{ fontSize: 11 }}
+                  />
+                  <Tooltip 
+                    formatter={(value: number) => [
+                      value.toLocaleString(),
+                      'Prediction'
+                    ]}
+                    labelFormatter={(label) => `Day ${label}`}
+                  />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="prediction" 
+                    stroke={getModelColor(modelName)}
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    name="Prediction"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
       ))}
@@ -206,30 +226,30 @@ export const PredictionChart: React.FC<PredictionChartProps> = ({ predictions })
         <CardHeader>
           <CardTitle className="text-lg">Prediction Summary</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 border rounded-lg">
+            <div className="p-6 border rounded-lg bg-card/50">
               <div className="text-2xl font-bold text-primary">
                 {Object.values(predictions).reduce((sum, modelPredictions) => sum + modelPredictions.length, 0)}
               </div>
               <div className="text-sm text-muted-foreground">Total Predictions</div>
             </div>
             
-            <div className="p-4 border rounded-lg">
+            <div className="p-6 border rounded-lg bg-card/50">
               <div className="text-2xl font-bold text-blue-600">
                 {modelNames.length}
               </div>
               <div className="text-sm text-muted-foreground">Models Used</div>
             </div>
             
-            <div className="p-4 border rounded-lg">
+            <div className="p-6 border rounded-lg bg-card/50">
               <div className="text-2xl font-bold text-green-600">
                 {Math.max(...Object.values(predictions).map(modelPredictions => modelPredictions.length))}
               </div>
               <div className="text-sm text-muted-foreground">Days Forecasted</div>
             </div>
             
-            <div className="p-4 border rounded-lg">
+            <div className="p-6 border rounded-lg bg-card/50">
               <div className="text-2xl font-bold text-purple-600">
                 {Object.values(predictions).reduce((sum, modelPredictions) => {
                   const avg = modelPredictions.reduce((s, p) => s + p.prediction, 0) / modelPredictions.length;
