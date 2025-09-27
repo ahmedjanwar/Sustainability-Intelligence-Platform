@@ -1,13 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { greenviewApi, PredictionRequest, PredictionResponse } from '@/services/greenviewApi';
 import { useToast } from '@/hooks/use-toast';
 
 export interface PredictionFilters {
-  startDate: string;
-  endDate: string;
-  metricFilter?: string;
-  predictionHorizon: '7d' | '30d' | '90d' | '1y';
-  scenario: 'current_trends' | 'optimistic' | 'conservative';
+  metric: string;
+  forecast_days: number;
+  models?: string[];
 }
 
 export const usePredictions = () => {
@@ -22,19 +20,18 @@ export const usePredictions = () => {
     
     try {
       const request: PredictionRequest = {
-        startDate: filters.startDate,
-        endDate: filters.endDate,
-        filter: filters.metricFilter,
-        predictionHorizon: filters.predictionHorizon,
-        scenario: filters.scenario,
+        metric: filters.metric,
+        forecast_days: filters.forecast_days,
+        models: filters.models || ['xgboost', 'lightgbm'],
       };
 
       const response = await greenviewApi.getPredictions(request);
       setPredictions(response);
       
+      const totalPredictions = Object.values(response.predictions).reduce((sum, modelPredictions) => sum + modelPredictions.length, 0);
       toast({
         title: "Predictions generated",
-        description: `Successfully generated ${response.predictions.length} predictions`,
+        description: `Successfully generated ${totalPredictions} predictions for ${response.metric}`,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate predictions';

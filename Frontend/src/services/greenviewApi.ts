@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
-const GREENVIEW_API_BASE = 'https://greenview-api-production.up.railway.app';
+// Backend API base URL - no authentication required
+const BACKEND_API_BASE = 'https://greenview-api-production.up.railway.app';
 
 export interface MetricData {
   metricName: string;
@@ -13,146 +14,36 @@ export interface MetricResponse {
   data: MetricData[];
 }
 
+// Backend API interfaces matching the actual FastAPI endpoints
 export interface PredictionRequest {
-  startDate: string;
-  endDate: string;
-  filter?: string;
-  predictionHorizon?: '7d' | '30d' | '90d' | '1y';
-  scenario?: 'current_trends' | 'optimistic' | 'conservative';
+  metric: string;
+  forecast_days: number;
+  models?: string[];
 }
 
 export interface PredictionResponse {
+  metric: string;
+  forecast_days: number;
+  current_value: number;
+  sustainability_score: number;
   predictions: {
-    metricName: string;
-    predictedValue: number;
-    confidence: number;
-    predictionDate: string;
-    unit: string;
-  }[];
-  modelInfo: {
-    algorithm: string;
-    accuracy: number;
-    lastTrained: string;
+    [modelName: string]: {
+      date: string;
+      prediction: number;
+      days_ahead: number;
+    }[];
+  };
+  latest_predictions: {
+    [modelName: string]: number;
   };
 }
 
 class GreenViewApiService {
-  private async getAuthToken(): Promise<string | null> {
-    try {
-      // Try to get token from Supabase secrets/config
-      const { data: config } = await supabase
-        .from('system_config')
-        .select('config_value')
-        .eq('config_key', 'greenview_api_token')
-        .single();
-      
-      if (config?.config_value) {
-        const configValue = config.config_value as any;
-        return configValue.token || configValue;
-      }
-      
-      return null; // No token available, will use mock data
-    } catch (error) {
-      console.warn('No API token configured, using mock data:', error);
-      return null;
-    }
-  }
-
-  private generateMockMetrics(): MetricResponse {
-    const metrics: MetricData[] = [];
-    const now = new Date();
-    
-    // Generate mock data for the past 30 days
-    for (let i = 30; i >= 0; i--) {
-      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      
-      metrics.push(
-        {
-          metricName: 'energy_consumption',
-          value: Math.floor(Math.random() * 5000) + 3000,
-          unit: 'kWh',
-          timestamp: date.toISOString(),
-        },
-        {
-          metricName: 'carbon_emissions',
-          value: Math.floor(Math.random() * 3000) + 1000,
-          unit: 'kgCO2e',
-          timestamp: date.toISOString(),
-        },
-        {
-          metricName: 'water_usage',
-          value: Math.floor(Math.random() * 50000) + 20000,
-          unit: 'L',
-          timestamp: date.toISOString(),
-        },
-        {
-          metricName: 'renewable_energy_percentage',
-          value: Math.floor(Math.random() * 40) + 40,
-          unit: '%',
-          timestamp: date.toISOString(),
-        }
-      );
-    }
-    
-    return { data: metrics };
-  }
-
-  private generateMockPredictions(): PredictionResponse {
-    const predictions = [];
-    const now = new Date();
-    
-    // Generate predictions for the next 30 days
-    for (let i = 1; i <= 30; i++) {
-      const date = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
-      
-      predictions.push(
-        {
-          metricName: 'energy_consumption',
-          predictedValue: Math.floor(Math.random() * 1000) + 3500,
-          confidence: 0.7 + Math.random() * 0.25,
-          predictionDate: date.toISOString(),
-          unit: 'kWh',
-        },
-        {
-          metricName: 'carbon_emissions',
-          predictedValue: Math.floor(Math.random() * 500) + 1200,
-          confidence: 0.65 + Math.random() * 0.3,
-          predictionDate: date.toISOString(),
-          unit: 'kgCO2e',
-        }
-      );
-    }
-    
-    return {
-      predictions,
-      modelInfo: {
-        algorithm: 'Random Forest (Demo)',
-        accuracy: 0.85,
-        lastTrained: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-    };
-  }
 
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const token = await this.getAuthToken();
-    
-    if (!token) {
-      // Return mock data when no token is available
-      console.info('Using mock data - no API token configured');
-      
-      if (endpoint.includes('/metrics')) {
-        return this.generateMockMetrics() as T;
-      } else if (endpoint.includes('/predictions')) {
-        return this.generateMockPredictions() as T;
-      }
-      
-      throw new Error('Mock data not available for this endpoint');
-    }
-
-    const response = await fetch(`${GREENVIEW_API_BASE}${endpoint}`, {
+    const response = await fetch(`${BACKEND_API_BASE}${endpoint}`, {
       ...options,
       headers: {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
         ...options.headers,
       },
@@ -160,7 +51,7 @@ class GreenViewApiService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      throw new Error(errorData.detail || errorData.message || `HTTP ${response.status}: ${response.statusText}`);
     }
 
     return response.json();
@@ -184,18 +75,13 @@ class GreenViewApiService {
   }
 
   async getPredictions(request: PredictionRequest): Promise<PredictionResponse> {
-    const searchParams = new URLSearchParams({
-      startDate: request.startDate,
-      endDate: request.endDate,
-      ...(request.filter && { filter: request.filter }),
-      ...(request.predictionHorizon && { horizon: request.predictionHorizon }),
-      ...(request.scenario && { scenario: request.scenario }),
-    });
-
-    // Assuming the API has a predictions endpoint
-    const endpoint = `/predictions?${searchParams.toString()}`;
+    // Call the actual backend ML predictions endpoint
+    const endpoint = '/api/v1/ml-predictions/forecast';
     
-    return this.makeRequest<PredictionResponse>(endpoint);
+    return this.makeRequest<PredictionResponse>(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
   }
 
   async submitReport(reportData: {
@@ -228,7 +114,7 @@ class GreenViewApiService {
       // Transform to GreenView format
       const metrics: MetricData[] = [];
       
-      sustainabilityData.forEach(row => {
+      sustainabilityData.forEach((row: any) => {
         if (row.Energy_Consumption_kWh) {
           metrics.push({
             metricName: 'energy_consumption',

@@ -1,52 +1,49 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, TrendingUp, Brain, Calendar, Filter } from 'lucide-react';
+import { Loader2, TrendingUp, Brain, Filter } from 'lucide-react';
 import { usePredictions, PredictionFilters } from '@/hooks/usePredictions';
 import { PredictionChart } from './PredictionChart';
-import { format, addDays } from 'date-fns';
+import { format } from 'date-fns';
 
 export const MLPredictions: React.FC = () => {
   const { predictions, loading, error, generatePredictions, clearPredictions } = usePredictions();
   
   const [filters, setFilters] = useState<PredictionFilters>({
-    startDate: format(addDays(new Date(), -30), 'yyyy-MM-dd'),
-    endDate: format(new Date(), 'yyyy-MM-dd'),
-    predictionHorizon: '30d',
-    scenario: 'current_trends',
+    metric: 'CO2_Emissions_kg',
+    forecast_days: 30,
+    models: ['xgboost', 'lightgbm'],
   });
 
   const handleGeneratePredictions = () => {
     generatePredictions(filters);
   };
 
-  const handleFilterChange = (key: keyof PredictionFilters, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+  const handleFilterChange = (key: keyof PredictionFilters, value: string | string[]) => {
+    setFilters((prev: PredictionFilters) => ({ 
+      ...prev, 
+      [key]: key === 'forecast_days' ? parseInt(value as string) : value 
+    }));
   };
 
-  const metricFilterOptions = [
-    { value: 'all', label: 'All Metrics' },
-    { value: 'energy_consumption', label: 'Energy Consumption' },
-    { value: 'carbon_emissions', label: 'Carbon Emissions' },
-    { value: 'water_usage', label: 'Water Usage' },
-    { value: 'renewable_energy_percentage', label: 'Renewable Energy %' },
+  const metricOptions = [
+    { value: 'CO2_Emissions_kg', label: 'CO2 Emissions (kg)' },
+    { value: 'Waste_Generated_kg', label: 'Waste Generated (kg)' },
+    { value: 'Sustainability_Score', label: 'Sustainability Score' },
+    { value: 'Heat_Generation_MWh', label: 'Heat Generation (MWh)' },
+    { value: 'Electricity_Generation_MWh', label: 'Electricity Generation (MWh)' },
   ];
 
-  const horizonOptions = [
-    { value: '7d', label: '7 Days' },
-    { value: '30d', label: '30 Days' },
-    { value: '90d', label: '90 Days' },
-    { value: '1y', label: '1 Year' },
+  const forecastDaysOptions = [
+    { value: 7, label: '7 Days' },
+    { value: 30, label: '30 Days' },
+    { value: 90, label: '90 Days' },
+    { value: 365, label: '1 Year' },
+    { value: 730, label: '2 Years' },
   ];
 
-  const scenarioOptions = [
-    { value: 'current_trends', label: 'Current Trends' },
-    { value: 'optimistic', label: 'Optimistic' },
-    { value: 'conservative', label: 'Conservative' },
-  ];
 
   return (
     <div className="space-y-6">
@@ -75,39 +72,18 @@ export const MLPredictions: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Date Range */}
+            {/* Metric Selection */}
             <div className="space-y-2">
-              <Label htmlFor="startDate">Start Date</Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={filters.startDate}
-                onChange={(e) => handleFilterChange('startDate', e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="endDate">End Date</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={filters.endDate}
-                onChange={(e) => handleFilterChange('endDate', e.target.value)}
-              />
-            </div>
-
-            {/* Metric Filter */}
-            <div className="space-y-2">
-              <Label>Metric Focus</Label>
+              <Label>Metric to Predict</Label>
               <Select
-                value={filters.metricFilter || 'all'}
-                onValueChange={(value) => handleFilterChange('metricFilter', value)}
+                value={filters.metric}
+                onValueChange={(value: string) => handleFilterChange('metric', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select metrics" />
+                  <SelectValue placeholder="Select metric" />
                 </SelectTrigger>
                 <SelectContent>
-                  {metricFilterOptions.map((option) => (
+                  {metricOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
@@ -116,19 +92,19 @@ export const MLPredictions: React.FC = () => {
               </Select>
             </div>
 
-            {/* Prediction Horizon */}
+            {/* Forecast Days */}
             <div className="space-y-2">
-              <Label>Prediction Horizon</Label>
+              <Label>Forecast Period</Label>
               <Select
-                value={filters.predictionHorizon}
-                onValueChange={(value) => handleFilterChange('predictionHorizon', value as any)}
+                value={filters.forecast_days.toString()}
+                onValueChange={(value: string) => handleFilterChange('forecast_days', value)}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {horizonOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
+                  {forecastDaysOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value.toString()}>
                       {option.label}
                     </SelectItem>
                   ))}
@@ -136,22 +112,21 @@ export const MLPredictions: React.FC = () => {
               </Select>
             </div>
 
-            {/* Scenario */}
+            {/* Models */}
             <div className="space-y-2">
-              <Label>Scenario</Label>
+              <Label>ML Models</Label>
               <Select
-                value={filters.scenario}
-                onValueChange={(value) => handleFilterChange('scenario', value as any)}
+                value={filters.models?.join(',') || 'xgboost,lightgbm'}
+                onValueChange={(value: string) => handleFilterChange('models', value.split(','))}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {scenarioOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="xgboost">XGBoost Only</SelectItem>
+                  <SelectItem value="lightgbm">LightGBM Only</SelectItem>
+                  <SelectItem value="xgboost,lightgbm">XGBoost + LightGBM</SelectItem>
+                  <SelectItem value="random_forest">Random Forest</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -194,27 +169,38 @@ export const MLPredictions: React.FC = () => {
       {/* Results */}
       {predictions && (
         <div className="space-y-4">
-          {/* Model Info */}
+          {/* Current Values */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Model Information</CardTitle>
+              <CardTitle className="text-lg">Current Values</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <Label className="font-medium">Algorithm</Label>
-                  <p className="text-muted-foreground">{predictions.modelInfo.algorithm}</p>
+                  <Label className="font-medium">Current {predictions.metric.replace('_', ' ')}</Label>
+                  <p className="text-2xl font-bold text-primary">{predictions.current_value.toLocaleString()}</p>
                 </div>
                 <div>
-                  <Label className="font-medium">Accuracy</Label>
-                  <p className="text-muted-foreground">{(predictions.modelInfo.accuracy * 100).toFixed(1)}%</p>
+                  <Label className="font-medium">Sustainability Score</Label>
+                  <p className="text-2xl font-bold text-green-600">{predictions.sustainability_score.toFixed(1)}%</p>
                 </div>
-                <div>
-                  <Label className="font-medium">Last Trained</Label>
-                  <p className="text-muted-foreground">
-                    {format(new Date(predictions.modelInfo.lastTrained), 'MMM dd, yyyy')}
-                  </p>
-                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Latest Predictions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Latest Predictions ({predictions.forecast_days} days ahead)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.entries(predictions.latest_predictions).map(([modelName, value]: [string, number]) => (
+                  <div key={modelName} className="p-4 border rounded-lg">
+                    <div className="text-sm font-medium text-muted-foreground">{modelName.toUpperCase()}</div>
+                    <div className="text-2xl font-bold">{value.toLocaleString()}</div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -222,45 +208,38 @@ export const MLPredictions: React.FC = () => {
           {/* Predictions Chart */}
           <PredictionChart predictions={predictions.predictions} />
 
-          {/* Predictions Table */}
+          {/* Detailed Predictions Table */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Detailed Predictions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-2">Metric</th>
-                      <th className="text-right p-2">Predicted Value</th>
-                      <th className="text-right p-2">Unit</th>
-                      <th className="text-right p-2">Confidence</th>
-                      <th className="text-right p-2">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {predictions.predictions.map((prediction, index) => (
-                      <tr key={index} className="border-b">
-                        <td className="p-2 font-medium">{prediction.metricName}</td>
-                        <td className="p-2 text-right">{prediction.predictedValue.toLocaleString()}</td>
-                        <td className="p-2 text-right text-muted-foreground">{prediction.unit}</td>
-                        <td className="p-2 text-right">
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            prediction.confidence > 0.8 ? 'bg-green-100 text-green-800' :
-                            prediction.confidence > 0.6 ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {(prediction.confidence * 100).toFixed(0)}%
-                          </span>
-                        </td>
-                        <td className="p-2 text-right text-muted-foreground">
-                          {format(new Date(prediction.predictionDate), 'MMM dd, yyyy')}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="space-y-4">
+                {Object.entries(predictions.predictions).map(([modelName, modelPredictions]: [string, any[]]) => (
+                  <div key={modelName}>
+                    <h4 className="font-medium mb-2">{modelName.toUpperCase()} Predictions</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left p-2">Date</th>
+                            <th className="text-right p-2">Days Ahead</th>
+                            <th className="text-right p-2">Prediction</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {modelPredictions.slice(0, 10).map((prediction: any, index: number) => (
+                            <tr key={index} className="border-b">
+                              <td className="p-2">{format(new Date(prediction.date), 'MMM dd, yyyy')}</td>
+                              <td className="p-2 text-right">{prediction.days_ahead}</td>
+                              <td className="p-2 text-right font-medium">{prediction.prediction.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
