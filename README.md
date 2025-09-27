@@ -101,12 +101,12 @@ Sustainability-Intelligence-Platform/
 - [x] AI Insight Panel (Copilot) – text recommendations
 
 ### Bonus Features
-- [ ] What-if simulations
-- [ ] ML-based future predictions
-- [ ] Advanced filtering and drill-down
-- [ ] Real-time data streams
-- [ ] Mobile-responsive design
-- [ ] PDF report generation
+- [X] What-if simulations
+- [X] ML-based future predictions
+- [x] Advanced filtering and drill-down
+- [X] Real-time data streams
+- [X] Mobile-responsive design
+- [X] PDF report generation
 
 ## 🎯 Demo Flow
 
