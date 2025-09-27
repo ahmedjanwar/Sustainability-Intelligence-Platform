@@ -246,8 +246,9 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {datasets.length === 0 && (
-          <div className="space-y-6">
+        {/* File Upload Section - Always visible */}
+        <div className="space-y-6">
+          {datasets.length === 0 && (
             <Card className="shadow-card">
               <CardContent className="p-6 text-center">
                 <Database className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
@@ -255,15 +256,15 @@ const Dashboard = () => {
                 <p className="text-muted-foreground mb-4">Upload your sustainability data to begin analyzing environmental metrics and generating insights.</p>
               </CardContent>
             </Card>
-            
-            <FileUpload 
-              onFilesUploaded={(files) => {
-                console.log('Files uploaded:', files);
-              }}
-              onUploadSuccess={handleUploadSuccess}
-            />
-          </div>
-        )}
+          )}
+          
+          <FileUpload 
+            onFilesUploaded={(files) => {
+              console.log('Files uploaded:', files);
+            }}
+            onUploadSuccess={handleUploadSuccess}
+          />
+        </div>
       </div>
 
       {/* Main Dashboard Tabs */}
