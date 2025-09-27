@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -31,6 +31,7 @@ export const Reports: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('last_30_days');
   const [generating, setGenerating] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
@@ -38,7 +39,8 @@ export const Reports: React.FC = () => {
     datasets, 
     selectedDataset, 
     datasetData, 
-    calculateMetricsFromDataset 
+    calculateMetricsFromDataset,
+    setSelectedDataset
   } = useUploadedDatasets();
 
   const reportTypes = [
@@ -56,6 +58,31 @@ export const Reports: React.FC = () => {
     { value: 'last_year', label: 'Last Year' },
     { value: 'custom', label: 'Custom Range' },
   ];
+
+  // Handle dataset changes
+  useEffect(() => {
+    if (selectedDataset) {
+      console.log('Selected dataset changed:', selectedDataset);
+      setIsLoadingData(true);
+      
+      // Show toast notification for dataset change
+      toast({
+        title: "Dataset Changed",
+        description: `Switched to ${selectedDataset.original_filename}`,
+      });
+      
+      // Simulate a brief loading state for better UX
+      const timer = setTimeout(() => {
+        setIsLoadingData(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedDataset, toast]);
+
+  // Debug datasets
+  useEffect(() => {
+    console.log('Datasets updated:', datasets);
+  }, [datasets]);
 
   // Calculate metrics for the report
   const metrics = selectedDataset ? calculateMetricsFromDataset(datasetData) : null;
@@ -357,13 +384,75 @@ export const Reports: React.FC = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Dataset</label>
-              <div className="p-2 border rounded-md bg-muted/30">
-                <p className="text-sm text-muted-foreground">
-                  {selectedDataset ? selectedDataset.original_filename : 'No dataset selected'}
-                </p>
-              </div>
+              <Select 
+                value={selectedDataset?.id || ''} 
+                onValueChange={(datasetId) => {
+                  console.log('Dataset selection changed:', datasetId);
+                  console.log('Available datasets:', datasets);
+                  const dataset = datasets.find(d => d.id === datasetId);
+                  console.log('Found dataset:', dataset);
+                  if (dataset) {
+                    setSelectedDataset(dataset);
+                  }
+                }}
+                disabled={isLoadingData}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a dataset" />
+                  {isLoadingData && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
+                </SelectTrigger>
+                <SelectContent>
+                  {datasets.length > 0 ? (
+                    datasets.map((dataset) => (
+                      <SelectItem key={dataset.id} value={dataset.id}>
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          <div className="flex flex-col">
+                            <span className="font-medium">{dataset.original_filename}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {dataset.created_at ? format(new Date(dataset.created_at), 'MMM dd, yyyy') : 'Unknown date'}
+                            </span>
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-data" disabled>
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        <span>No datasets available</span>
+                      </div>
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
             </div>
           </div>
+
+          {/* Selected Dataset Info */}
+          {selectedDataset && (
+            <div className="p-4 bg-muted/30 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <FileText className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-sm">{selectedDataset.original_filename}</h4>
+                  <div className="flex items-center gap-4 mt-1">
+                    <span className="text-xs text-muted-foreground">
+                      {datasetData?.length || 0} records
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Uploaded {selectedDataset.created_at ? format(new Date(selectedDataset.created_at), 'MMM dd, yyyy') : 'Unknown date'}
+                    </span>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  Active Dataset
+                </Badge>
+              </div>
+            </div>
+          )}
 
           <div className="flex gap-2">
             <Button 
@@ -394,7 +483,19 @@ export const Reports: React.FC = () => {
 
       {/* Report Preview */}
       {selectedDataset && (
-        <div ref={reportRef} className="space-y-6 print:space-y-4">
+        <div className="space-y-6">
+          {isLoadingData ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Loader2 className="h-8 w-8 mx-auto text-primary animate-spin mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Loading Report Data</h3>
+                <p className="text-muted-foreground">
+                  Preparing report for {selectedDataset.original_filename}...
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div ref={reportRef} className="space-y-6 print:space-y-4">
           {/* Report Header */}
           <Card className="print:shadow-none print:border-0">
             <CardContent className="p-6 print:p-4">
@@ -564,6 +665,8 @@ export const Reports: React.FC = () => {
               </p>
             </CardContent>
           </Card>
+            </div>
+          )}
         </div>
       )}
 
@@ -572,11 +675,25 @@ export const Reports: React.FC = () => {
         <Card>
           <CardContent className="p-12 text-center">
             <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No Data Available</h3>
+            <h3 className="text-xl font-semibold mb-2">
+              {datasets.length === 0 ? 'No Datasets Available' : 'No Dataset Selected'}
+            </h3>
             <p className="text-muted-foreground mb-4">
-              Please upload and select a dataset to generate comprehensive sustainability reports.
+              {datasets.length === 0 
+                ? 'Please upload a dataset first to generate comprehensive sustainability reports.'
+                : 'Please select a dataset from the dropdown above to generate reports.'
+              }
             </p>
-            <Badge variant="outline">Upload data to get started</Badge>
+            <div className="flex items-center justify-center gap-2">
+              <Badge variant="outline">
+                {datasets.length === 0 ? 'Upload data to get started' : 'Select a dataset to continue'}
+              </Badge>
+              {datasets.length > 0 && (
+                <Badge variant="secondary">
+                  {datasets.length} dataset{datasets.length !== 1 ? 's' : ''} available
+                </Badge>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
