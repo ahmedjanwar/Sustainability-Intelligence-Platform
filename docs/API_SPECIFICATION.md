@@ -1,432 +1,531 @@
-# GreenView API Specification
+# 📚 API Specification
 
-## Overview
-This document outlines the REST API endpoints for the GreenView Sustainability Intelligence Platform backend, built with FastAPI and integrated with AI/ML capabilities.
+Comprehensive API documentation for the Sustainability Intelligence Platform.
 
-## Base URL
-```
-http://localhost:8000/api/v1
-```
+## 🌐 Base URLs
 
----
+- **Local Development**: `http://localhost:8000`
+- **Production**: `https://greenview-api-production.up.railway.app`
 
-## 1. Data Ingestion / Upload
+## 🔐 Authentication
 
-### Upload CSV Dataset
-**POST** `/upload/csv`
+Currently, the API does not require authentication. All endpoints are publicly accessible.
 
-Upload a CSV dataset for sustainability analysis.
-
-**Request:**
-- Content-Type: `multipart/form-data`
-- Body: CSV file
-
-**Response:**
-```json
-{
-  "status": "success",
-  "dataset_id": "uuid-string",
-  "filename": "original_filename.csv",
-  "rows_processed": 1500,
-  "uploaded_at": "2024-01-15T10:30:00Z"
-}
-```
-
-### Fetch External Data
-**POST** `/fetch/api`
-
-Fetch external data via API (e.g., Fingrid, weather services).
-
-**Request:**
-```json
-{
-  "api_url": "https://api.fingrid.fi/v1/",
-  "auth_token": "your-api-key",
-  "endpoint": "production",
-  "date_range": {
-    "start": "2024-01-01",
-    "end": "2024-01-31"
-  }
-}
-```
-
-**Response:**
-```json
-{
-  "status": "success",
-  "dataset_id": "uuid-string",
-  "source": "fingrid",
-  "records_fetched": 744,
-  "fetched_at": "2024-01-15T10:30:00Z"
-}
-```
-
----
-
-## 2. Data Management
-
-### List Datasets
-**GET** `/datasets`
-
-Retrieve all uploaded datasets with metadata.
-
-**Response:**
-```json
-[
-  {
-    "dataset_id": "uuid-string",
-    "filename": "energy_data.csv",
-    "uploaded_at": "2024-01-15T10:30:00Z",
-    "size_mb": 2.5,
-    "status": "processed",
-    "rows": 1500
-  }
-]
-```
-
-### Get Dataset Details
-**GET** `/datasets/{dataset_id}`
-
-Get detailed information about a specific dataset.
-
-**Response:**
-```json
-{
-  "dataset_id": "uuid-string",
-  "filename": "energy_data.csv",
-  "uploaded_at": "2024-01-15T10:30:00Z",
-  "columns": ["timestamp", "energy_consumption", "renewable_share"],
-  "sample_data": [
-    ["2024-01-01T00:00:00Z", 150.5, 0.45],
-    ["2024-01-01T01:00:00Z", 142.3, 0.48]
-  ],
-  "summary_stats": {
-    "total_rows": 1500,
-    "date_range": {
-      "start": "2024-01-01T00:00:00Z",
-      "end": "2024-01-31T23:00:00Z"
-    },
-    "missing_values": 0
-  }
-}
-```
-
-### Delete Dataset
-**DELETE** `/datasets/{dataset_id}`
-
-Remove a dataset and all associated analysis results.
-
-**Response:**
-```json
-{
-  "status": "deleted",
-  "dataset_id": "uuid-string",
-  "deleted_at": "2024-01-15T11:00:00Z"
-}
-```
-
----
-
-## 3. Sustainability Metrics / Dashboard
-
-### Get Sustainability KPIs
-**GET** `/metrics/{dataset_id}`
-
-Compute comprehensive sustainability metrics for a dataset.
-
-**Response:**
-```json
-{
-  "sustainability_score": 82,
-  "carbon_intensity": 0.35,
-  "renewable_share": 48,
-  "energy_efficiency": 0.78,
-  "emissions_reduction": 12.5,
-  "metrics": {
-    "co2_emissions_kg": 1250.5,
-    "renewable_energy_mwh": 450.2,
-    "total_energy_mwh": 937.8,
-    "efficiency_rating": "B+",
-    "carbon_footprint": 0.35
-  },
-  "calculated_at": "2024-01-15T10:30:00Z"
-}
-```
-
-### Get Dashboard Data
-**GET** `/dashboard/{dataset_id}`
-
-Return structured data for interactive dashboard charts.
-
-**Response:**
-```json
-{
-  "energy_mix": [
-    {"source": "solar", "percentage": 35, "mwh": 328.2},
-    {"source": "wind", "percentage": 25, "mwh": 234.5},
-    {"source": "hydro", "percentage": 20, "mwh": 187.6},
-    {"source": "fossil", "percentage": 20, "mwh": 187.5}
-  ],
-  "emissions_timeline": [
-    {"date": "2024-01-01", "co2_kg": 45.2},
-    {"date": "2024-01-02", "co2_kg": 42.8}
-  ],
-  "efficiency_trends": [
-    {"date": "2024-01-01", "efficiency": 0.75},
-    {"date": "2024-01-02", "efficiency": 0.78}
-  ],
-  "kpi_summary": {
-    "sustainability_score": 82,
-    "carbon_intensity": 0.35,
-    "renewable_share": 48
-  }
-}
-```
-
----
-
-## 4. AI Insights
-
-### Generate AI Insights
-**GET** `/ai/insights/{dataset_id}`
-
-Generate natural language insights and recommendations using AI analysis.
-
-**Response:**
-```json
-{
-  "insights": [
-    "Switching to supplier B could reduce emissions by 12% based on historical data",
-    "Your renewable energy share is 15% below industry average of 63%",
-    "Peak energy consumption occurs at 2-4 PM; consider load shifting strategies",
-    "Solar panel installation could increase renewable share to 65%"
-  ],
-  "recommendations": [
-    {
-      "priority": "high",
-      "action": "Switch to renewable energy supplier",
-      "potential_savings": "€2,400/year",
-      "co2_reduction": "8.5 tons/year"
-    },
-    {
-      "priority": "medium",
-      "action": "Implement smart grid optimization",
-      "potential_savings": "€1,200/year",
-      "co2_reduction": "3.2 tons/year"
-    }
-  ],
-  "generated_at": "2024-01-15T10:30:00Z",
-  "confidence_score": 0.87
-}
-```
-
----
-
-## 5. ML Predictions
-
-### Predict Future Metrics
-**POST** `/ml/predict/{dataset_id}`
-
-Generate ML-based predictions for future sustainability metrics.
-
-**Request:**
-```json
-{
-  "time_horizon": "6_months",
-  "prediction_type": "emissions_and_efficiency",
-  "scenario": "current_trends"
-}
-```
-
-**Response:**
-```json
-{
-  "predictions": {
-    "future_emissions": [
-      {"date": "2024-02-01", "co2_kg": 38.5, "confidence": 0.85},
-      {"date": "2024-03-01", "co2_kg": 36.2, "confidence": 0.82}
-    ],
-    "efficiency_forecast": [
-      {"date": "2024-02-01", "efficiency": 0.80, "confidence": 0.88},
-      {"date": "2024-03-01", "efficiency": 0.82, "confidence": 0.85}
-    ],
-    "renewable_share_forecast": [
-      {"date": "2024-02-01", "percentage": 52, "confidence": 0.90},
-      {"date": "2024-03-01", "percentage": 55, "confidence": 0.87}
-    ]
-  },
-  "model_info": {
-    "model_version": "v1.2",
-    "training_date": "2024-01-10T00:00:00Z",
-    "accuracy_score": 0.89
-  },
-  "generated_at": "2024-01-15T10:30:00Z"
-}
-```
-
-### Train ML Models
-**POST** `/ml/train`
-
-Retrain ML models using stored datasets.
-
-**Request:**
-```json
-{
-  "datasets": ["uuid-1", "uuid-2"],
-  "model_type": "sustainability_forecast",
-  "parameters": {
-    "test_size": 0.2,
-    "random_state": 42
-  }
-}
-```
-
-**Response:**
-```json
-{
-  "status": "training_started",
-  "job_id": "training-job-uuid",
-  "estimated_duration": "15 minutes",
-  "started_at": "2024-01-15T10:30:00Z"
-}
-```
-
----
-
-## 6. Reports & Export
-
-### Generate PDF Report
-**GET** `/export/pdf/{dataset_id}`
-
-Generate a comprehensive PDF sustainability report.
-
-**Query Parameters:**
-- `include_charts` (boolean): Include visualizations in PDF
-- `language` (string): Report language (en, fi, sv)
-
-**Response:**
-- Content-Type: `application/pdf`
-- Body: PDF file download
-
-### Export JSON Data
-**GET** `/export/json/{dataset_id}`
-
-Download processed data and metrics as JSON.
-
-**Response:**
-```json
-{
-  "dataset_info": {
-    "dataset_id": "uuid-string",
-    "exported_at": "2024-01-15T10:30:00Z"
-  },
-  "raw_data": [...],
-  "processed_metrics": {...},
-  "ai_insights": {...},
-  "ml_predictions": {...}
-}
-```
-
----
-
-## 7. Health & Monitoring
+## 📊 API Endpoints
 
 ### Health Check
-**GET** `/health`
 
-Check API health and status.
-
-**Response:**
-```json
-{
-  "status": "ok",
-  "uptime": "2h34m",
-  "timestamp": "2024-01-15T10:30:00Z",
-  "services": {
-    "database": "healthy",
-    "ml_engine": "healthy",
-    "ai_service": "healthy"
-  }
-}
-```
-
-### Version Information
-**GET** `/version`
-
-Return backend and AI/ML module versions.
+#### GET /health
+Check API health status.
 
 **Response:**
 ```json
 {
-  "api_version": "1.0.0",
-  "ml_model_version": "v1.2.3",
-  "ai_service_version": "v2.1.0",
-  "build_date": "2024-01-15T08:00:00Z",
-  "git_commit": "abc123def456"
+  "status": "healthy",
+  "service": "sustainability-intelligence-platform"
 }
 ```
+
+**Status Codes:**
+- `200 OK`: Service is healthy
 
 ---
 
-## Error Responses
+### Root Information
 
-All endpoints may return the following error responses:
+#### GET /
+Get API information and available endpoints.
 
-### 400 Bad Request
+**Response:**
 ```json
 {
-  "error": "bad_request",
-  "message": "Invalid input parameters",
-  "details": {...}
-}
-```
-
-### 404 Not Found
-```json
-{
-  "error": "not_found",
-  "message": "Dataset not found",
-  "dataset_id": "uuid-string"
-}
-```
-
-### 422 Validation Error
-```json
-{
-  "error": "validation_error",
-  "message": "Invalid file format",
-  "details": {
-    "field": "file",
-    "issue": "Expected CSV format"
+  "message": "Sustainability Intelligence Platform API",
+  "version": "1.0.0",
+  "docs": "/docs",
+  "status": "healthy",
+  "routers_loaded": true,
+  "endpoints": {
+    "ai_copilot": "/api/v1/ai-copilot/",
+    "ml_predictions": "/api/v1/ml-predictions/",
+    "sustainability": "/api/v1/sustainability/",
+    "data_upload": "/api/v1/data-upload/"
   }
 }
 ```
 
-### 500 Internal Server Error
+---
+
+## 🤖 ML Predictions API
+
+### Forecast Predictions
+
+#### POST /api/v1/ml-predictions/forecast
+Generate ML predictions for sustainability metrics.
+
+**Request Body:**
 ```json
 {
-  "error": "internal_error",
-  "message": "An unexpected error occurred",
-  "request_id": "req-uuid"
+  "metric": "CO2_Emissions_kg",
+  "forecast_days": 30,
+  "models": ["xgboost", "lightgbm"]
+}
+```
+
+**Parameters:**
+- `metric` (string, required): Metric to predict
+  - `CO2_Emissions_kg`: Carbon dioxide emissions
+  - `Waste_Generated_kg`: Waste generation
+  - `Sustainability_Score`: Overall sustainability score
+  - `Heat_Generation_MWh`: Heat energy generation
+  - `Electricity_Generation_MWh`: Electrical energy generation
+- `forecast_days` (integer, optional): Number of days to forecast (default: 730)
+- `models` (array, optional): ML models to use (default: ["xgboost", "lightgbm"])
+  - `xgboost`: XGBoost gradient boosting
+  - `lightgbm`: LightGBM gradient boosting
+  - `random_forest`: Random Forest ensemble
+
+**Response:**
+```json
+{
+  "metric": "CO2_Emissions_kg",
+  "forecast_days": 30,
+  "current_value": 3567.75,
+  "sustainability_score": 64.84,
+  "predictions": {
+    "xgboost": [
+      {
+        "date": "2025-01-22T00:00:00",
+        "prediction": 3189.570068359375,
+        "days_ahead": 1
+      },
+      {
+        "date": "2025-01-23T00:00:00",
+        "prediction": 3189.570068359375,
+        "days_ahead": 2
+      }
+    ],
+    "lightgbm": [
+      {
+        "date": "2025-01-22T00:00:00",
+        "prediction": 3215.944495195419,
+        "days_ahead": 1
+      },
+      {
+        "date": "2025-01-23T00:00:00",
+        "prediction": 3205.1865219968954,
+        "days_ahead": 2
+      }
+    ]
+  },
+  "latest_predictions": {
+    "xgboost": 3416.500244140625,
+    "lightgbm": 3482.008002625339
+  }
+}
+```
+
+**Status Codes:**
+- `200 OK`: Predictions generated successfully
+- `400 Bad Request`: Invalid metric or parameters
+- `500 Internal Server Error`: Model training or prediction failed
+
+---
+
+### Sustainability Score
+
+#### GET /api/v1/ml-predictions/sustainability-score
+Get current sustainability score with gauge data.
+
+**Response:**
+```json
+{
+  "current_score": 75.5,
+  "score_percentage": 75.5,
+  "gauge_data": {
+    "value": 75.5,
+    "axis_range": [0, 100],
+    "steps": [
+      {"range": [0, 40], "color": "red"},
+      {"range": [40, 70], "color": "orange"},
+      {"range": [70, 100], "color": "lightgreen"}
+    ]
+  }
+}
+```
+
+**Status Codes:**
+- `200 OK`: Score retrieved successfully
+- `500 Internal Server Error`: Data processing failed
+
+---
+
+### Available Metrics
+
+#### GET /api/v1/ml-predictions/available-metrics
+Get list of available metrics for prediction.
+
+**Response:**
+```json
+{
+  "available_metrics": [
+    "CO2_Emissions_kg",
+    "Waste_Generated_kg",
+    "Sustainability_Score",
+    "Heat_Generation_MWh",
+    "Electricity_Generation_MWh"
+  ],
+  "total_metrics": 5
+}
+```
+
+**Status Codes:**
+- `200 OK`: Metrics retrieved successfully
+- `500 Internal Server Error`: Data loading failed
+
+---
+
+### Health Check
+
+#### GET /api/v1/ml-predictions/health
+Check ML predictions service health.
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "service": "ml-predictions"
 }
 ```
 
 ---
 
-## Authentication
+## 💬 AI Copilot API
 
-All endpoints require authentication via API key in the header:
+### Chat Interface
 
+#### POST /api/v1/ai-copilot/chat
+Process natural language questions about sustainability metrics.
+
+**Request Body:**
+```json
+{
+  "question": "What will be the electricity generation after 90 days using lightgbm?"
+}
 ```
-Authorization: Bearer your-api-key-here
+
+**Parameters:**
+- `question` (string, required): Natural language question about sustainability metrics
+
+**Supported Question Formats:**
+- "What will be the electricity generation after 90 days using lightgbm?"
+- "Predict CO2 emissions for the next 30 days"
+- "What's the sustainability score in 60 days?"
+- "How much waste will be generated in 45 days using xgboost?"
+
+**Supported Metrics:**
+- CO2 emissions (`co2`, `CO2`)
+- Waste generation (`waste`)
+- Sustainability score (`score`, `sustainability`)
+- Heat generation (`heat`)
+- Electricity generation (`electricity`, `power`)
+
+**Supported Models:**
+- XGBoost (`xgboost`)
+- LightGBM (`lightgbm`)
+
+**Response:**
+```json
+{
+  "metric": "Electricity Generation MWh",
+  "model": "LIGHTGBM",
+  "days_ahead": 90,
+  "prediction": 1250.45,
+  "current_value": 1200.30,
+  "change": 50.15,
+  "percentage_change": 4.2,
+  "change_label": "increase",
+  "forecast_data": [
+    {"days_ahead": 0, "prediction": 1200.30},
+    {"days_ahead": 6, "prediction": 1210.45},
+    {"days_ahead": 12, "prediction": 1220.60},
+    {"days_ahead": 18, "prediction": 1230.75},
+    {"days_ahead": 24, "prediction": 1240.90},
+    {"days_ahead": 30, "prediction": 1250.45}
+  ]
+}
 ```
 
-## Rate Limiting
-
-- Upload endpoints: 10 requests per minute
-- Analysis endpoints: 30 requests per minute
-- Health endpoints: 100 requests per minute
+**Status Codes:**
+- `200 OK`: Question processed successfully
+- `400 Bad Request`: Unsupported question format or metric
+- `500 Internal Server Error`: AI processing failed
 
 ---
 
-*This specification will be updated as the API evolves during development.*
+### Health Check
+
+#### GET /api/v1/ai-copilot/health
+Check AI copilot service health.
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "service": "ai-copilot"
+}
+```
+
+---
+
+## 📊 Data Models
+
+### Prediction Request
+```typescript
+interface PredictionRequest {
+  metric: string;
+  forecast_days: number;
+  models?: string[];
+}
+```
+
+### Prediction Response
+```typescript
+interface PredictionResponse {
+  metric: string;
+  forecast_days: number;
+  current_value: number;
+  sustainability_score: number;
+  predictions: {
+    [modelName: string]: PredictionData[];
+  };
+  latest_predictions: {
+    [modelName: string]: number;
+  };
+}
+```
+
+### Prediction Data
+```typescript
+interface PredictionData {
+  date: string;
+  prediction: number;
+  days_ahead: number;
+}
+```
+
+### Chat Request
+```typescript
+interface ChatRequest {
+  question: string;
+}
+```
+
+### Chat Response
+```typescript
+interface ChatResponse {
+  metric: string;
+  model: string;
+  days_ahead: number;
+  prediction: number;
+  current_value: number;
+  change: number;
+  percentage_change: number;
+  change_label: string;
+  forecast_data: ForecastData[];
+}
+```
+
+### Forecast Data
+```typescript
+interface ForecastData {
+  days_ahead: number;
+  prediction: number;
+}
+```
+
+---
+
+## 🔧 Error Handling
+
+### Error Response Format
+```json
+{
+  "detail": "Error message describing what went wrong",
+  "status_code": 400,
+  "error_type": "ValidationError"
+}
+```
+
+### Common Error Codes
+
+| Status Code | Description | Common Causes |
+|-------------|-------------|---------------|
+| `400 Bad Request` | Invalid request parameters | Missing required fields, invalid metric names |
+| `404 Not Found` | Endpoint not found | Incorrect URL path |
+| `422 Unprocessable Entity` | Validation error | Invalid data types, constraint violations |
+| `500 Internal Server Error` | Server error | Database connection failed, model training error |
+
+### Error Examples
+
+#### Invalid Metric
+```json
+{
+  "detail": "Column 'InvalidMetric' not found in dataset",
+  "status_code": 400
+}
+```
+
+#### Model Training Failed
+```json
+{
+  "detail": "No models could be trained",
+  "status_code": 400
+}
+```
+
+#### Database Connection Error
+```json
+{
+  "detail": "Internal server error: Database connection failed",
+  "status_code": 500
+}
+```
+
+---
+
+## 📈 Rate Limiting
+
+Currently, no rate limiting is implemented. However, it's recommended to:
+- Implement reasonable request intervals
+- Cache responses when possible
+- Use appropriate timeout values
+
+---
+
+## 🔄 CORS Configuration
+
+The API is configured with permissive CORS settings for development:
+
+```python
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+**Production Recommendation:**
+Configure specific origins for security:
+```python
+allow_origins=["https://your-frontend-domain.com"]
+```
+
+---
+
+## 📝 Examples
+
+### cURL Examples
+
+#### Generate Predictions
+```bash
+curl -X POST "https://greenview-api-production.up.railway.app/api/v1/ml-predictions/forecast" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "metric": "CO2_Emissions_kg",
+    "forecast_days": 30,
+    "models": ["xgboost", "lightgbm"]
+  }'
+```
+
+#### AI Chat
+```bash
+curl -X POST "https://greenview-api-production.up.railway.app/api/v1/ai-copilot/chat" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "What will be the electricity generation after 90 days using lightgbm?"
+  }'
+```
+
+#### Health Check
+```bash
+curl -X GET "https://greenview-api-production.up.railway.app/health"
+```
+
+### JavaScript Examples
+
+#### Fetch API
+```javascript
+// Generate predictions
+const response = await fetch('https://greenview-api-production.up.railway.app/api/v1/ml-predictions/forecast', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    metric: 'CO2_Emissions_kg',
+    forecast_days: 30,
+    models: ['xgboost', 'lightgbm']
+  })
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+#### Axios
+```javascript
+import axios from 'axios';
+
+// AI Chat
+const response = await axios.post('https://greenview-api-production.up.railway.app/api/v1/ai-copilot/chat', {
+  question: 'What will be the electricity generation after 90 days using lightgbm?'
+});
+
+console.log(response.data);
+```
+
+### Python Examples
+
+#### Requests
+```python
+import requests
+
+# Generate predictions
+response = requests.post(
+    'https://greenview-api-production.up.railway.app/api/v1/ml-predictions/forecast',
+    json={
+        'metric': 'CO2_Emissions_kg',
+        'forecast_days': 30,
+        'models': ['xgboost', 'lightgbm']
+    }
+)
+
+data = response.json()
+print(data)
+```
+
+---
+
+## 🔍 Interactive Documentation
+
+### Swagger UI
+Visit `https://greenview-api-production.up.railway.app/docs` for interactive API documentation.
+
+### ReDoc
+Visit `https://greenview-api-production.up.railway.app/redoc` for alternative API documentation.
+
+---
+
+## 📞 Support
+
+For API support and questions:
+- **GitHub Issues**: [Create an issue](https://github.com/your-username/sustainability-intelligence-platform/issues)
+- **Email**: api-support@sustainability-platform.com
+- **Documentation**: [Project Wiki](https://github.com/your-username/sustainability-intelligence-platform/wiki)
+
+---
+
+**API Version**: 1.0.0  
+**Last Updated**: January 2025
