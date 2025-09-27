@@ -1,268 +1,345 @@
-# Backend - Sustainability Intelligence Platform
+# Sustainability Intelligence Platform - Backend API
 
-This directory contains the backend API and services for the Sustainability Intelligence Platform - a comprehensive Python FastAPI system that processes and analyzes sustainability data to provide actionable insights through AI-powered recommendations and ML predictions.
+A comprehensive FastAPI-based backend system for sustainability data analysis, AI-powered insights, and machine learning predictions. This platform processes sustainability data to provide actionable insights through natural language AI interactions and advanced ML forecasting.
 
-## Overview
-
-The backend serves as the data processing engine that transforms raw sustainability data into meaningful insights. It handles data ingestion, processing, AI-powered analysis, and serves the processed data to the frontend through a RESTful API. Features include sustainability scoring, AI copilot integration, and ML-based future predictions.
-
-## Technology Stack
-
-- **Framework**: Python 3.9+ with FastAPI
-- **AI/ML**: OpenAI API + LangChain + scikit-learn + Prophet
-- **Database**: Supabase (PostgreSQL)
-- **Data Processing**: Pandas + NumPy
-- **API Documentation**: FastAPI auto-generated docs
-- **Authentication**: JWT tokens + Supabase Auth
-- **File Processing**: CSV parsing + data validation
-- **Caching**: Redis (optional)
-- **Deployment**: Docker + cloud hosting
-
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-
 - Python 3.9+
 - pip package manager
-- Supabase account
-- OpenAI API key
-- Node.js 18+ (for optional frontend integration)
+- PostgreSQL database (Supabase recommended)
 
 ### Installation
 
-1. Clone the repository
-2. Navigate to the Backend directory
-3. Create a virtual environment:
+1. **Clone and navigate to backend:**
+   ```bash
+   cd Backend
+   ```
+
+2. **Create virtual environment:**
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
-4. Install dependencies:
+
+3. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
-### Development
+4. **Start the server:**
+   ```bash
+   python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   ```
 
-Start the development server:
-```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
+5. **Access the API:**
+   - **API Documentation**: http://localhost:8000/docs
+   - **Alternative docs**: http://localhost:8000/redoc
+   - **Health check**: http://localhost:8000/health
 
-The API will be available at:
-- **API**: http://localhost:8000
-- **Documentation**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+## 📊 Features
 
-## Project Structure
+### 🤖 AI Copilot (`/api/v1/ai-copilot/`)
+- **Natural Language Processing**: Ask questions in plain English about sustainability metrics
+- **Multi-Model Predictions**: XGBoost, LightGBM, and RandomForest with automatic fallback
+- **Real-time Forecasting**: Get predictions with change analysis and trend data
+- **Intelligent Parsing**: Automatically detects metrics, timeframes, and preferred models from natural language
 
+**Example Questions:**
+- "What will be the electricity generation after 90 days using lightgbm?"
+- "Predict CO2 emissions for the next 30 days"
+- "What's the sustainability score in 60 days?"
+- "How much waste will be generated in 45 days using xgboost?"
+
+### 🔮 ML Predictions (`/api/v1/ml-predictions/`)
+- **Comprehensive Forecasting**: Multi-model predictions with confidence intervals
+- **Sustainability Scoring**: Real-time sustainability score calculation with visualization data
+- **Dynamic Metric Discovery**: Automatically discover available metrics from your data
+- **Advanced Models**: XGBoost, LightGBM, and RandomForest ensemble methods
+
+**Supported Metrics:**
+- `CO2_Emissions_kg` - Carbon dioxide emissions
+- `Waste_Generated_kg` - Waste generation
+- `Sustainability_Score` - Calculated sustainability index
+- `Heat_Generation_MWh` - Heat generation capacity
+- `Electricity_Generation_MWh` - Electricity generation
+
+### 📈 Sustainability Analytics (`/api/v1/sustainability/`)
+- **Health Monitoring**: Service health checks and status monitoring
+- **Score Calculation**: Advanced sustainability scoring algorithms
+- **Trend Analysis**: Historical data analysis and pattern recognition
+
+### 📁 Data Management (`/api/v1/data-upload/`)
+- **File Processing**: CSV upload and processing capabilities
+- **Data Validation**: Comprehensive data quality checks
+- **Status Monitoring**: Real-time processing status updates
+
+## 🏗️ Architecture
+
+### Technology Stack
+- **Framework**: FastAPI with automatic API documentation
+- **AI/ML**: XGBoost, LightGBM, scikit-learn, RandomForest
+- **Database**: PostgreSQL with Supabase integration
+- **Data Processing**: Pandas, NumPy for data manipulation
+- **API Documentation**: Swagger UI and ReDoc
+- **Deployment**: Docker-ready with cloud deployment support
+
+### Project Structure
 ```
 Backend/
 ├── app/
-│   ├── api/           # FastAPI routes and endpoints
-│   │   ├── v1/        # API version 1
-│   │   │   ├── ai   # Sustainability endpoints
-│   │   │   ├── ai_copilot.py      # AI Copilot endpoints
-│   │   │   ├── ml_predictions.py  # ML prediction endpoints
-│   │   │   └── data_upload.py     # File upload endpoints
-│   │   └── dependencies.py        # API dependencies
-│   ├── core/          # Core configuration and settings
-│   │   ├── config.py  # Environment configuration
-│   │   ├── security.py # Authentication and security
-│   │   └── database.py # Database connection
-│   ├── models/        # Pydantic models and schemas
-│   │   ├── sustainability.py # Sustainability data models
-│   │   ├── ai_models.py      # AI response models
-│   │   └── ml_models.py      # ML prediction models
-│   ├── services/      # Business logic and services
-│   │   ├── sustainability_service.py # Score calculation
-│   │   ├── ai_service.py            # OpenAI integration
-│   │   ├── ml_service.py            # ML predictions
-│   │   └── data_processing.py       # Data processing
-│   ├── utils/         # Utility functions
-│   │   ├── data_validation.py # Data validation
-│   │   ├── file_processing.py # CSV processing
-│   │   └── calculations.py    # Sustainability calculations
-│   └── main.py        # FastAPI application entry point
-├── data/              # Sample data and processing results
-├── tests/             # Test files
-├── requirements.txt   # Python dependencies
-├── Dockerfile         # Docker configuration
-└── .env.example       # Environment variables template
+│   ├── main.py                    # FastAPI application entry point
+│   └── api/v1/                    # API version 1 endpoints
+│       ├── ai_copilot.py         # AI Copilot natural language processing
+│       ├── ml_predictions.py     # Machine learning forecasting
+│       ├── sustainability.py     # Sustainability analytics
+│       └── data_upload.py        # Data upload and processing
+├── sustainability_dataset.csv     # Sample data for testing
+├── requirements.txt              # Python dependencies
+├── test_endpoints.py            # Comprehensive test suite
+├── Dockerfile                    # Docker configuration
+├── railway.json                 # Railway deployment config
+├── Procfile                     # Process configuration
+└── README.md                    # This documentation
 ```
 
-## API Endpoints
+## 🔌 API Endpoints
 
 ### Core Endpoints
-
-- `GET /api/v1/sustainability/score` - Get sustainability score
-- `POST /api/v1/sustainability/calculate` - Calculate sustainability score
-- `GET /api/v1/sustainability/metrics` - Get sustainability metrics
-- `GET /api/v1/sustainability/dashboard` - Get dashboard data
+- `GET /` - Root endpoint with API information and status
+- `GET /health` - General health check
+- `GET /docs` - Interactive API documentation (Swagger UI)
+- `GET /redoc` - Alternative API documentation
 
 ### AI Copilot Endpoints
+- `POST /api/v1/ai-copilot/chat` - Process natural language questions
+- `GET /api/v1/ai-copilot/health` - AI Copilot service health check
 
-- `POST /api/v1/ai/chat` - Chat with AI Copilot
-- `POST /api/v1/ai/insights` - Get AI-generated insights
-- `POST /api/v1/ai/recommendations` - Get AI recommendations
-- `POST /api/v1/ai/what-if` - Run what-if simulations
+### ML Predictions Endpoints
+- `POST /api/v1/ml-predictions/forecast` - Create multi-model forecasts
+- `GET /api/v1/ml-predictions/sustainability-score` - Get current sustainability score
+- `GET /api/v1/ml-predictions/available-metrics` - List available metrics
+- `GET /api/v1/ml-predictions/health` - ML service health check
 
-### Data Processing
+### Service Health Endpoints
+- `GET /api/v1/sustainability/health` - Sustainability service health
+- `GET /api/v1/data-upload/health` - Data upload service health
 
-- `POST /api/v1/upload/csv` - Upload CSV file
-- `GET /api/v1/upload/status/{id}` - Get upload processing status
-- `GET /api/v1/upload/results/{id}` - Get processing results
-- `POST /api/v1/upload/validate` - Validate uploaded data
+## 🗄️ Data Sources
 
-### ML Predictions
+The platform uses a robust multi-tier data system:
 
-- `POST /api/v1/ml/predict/emissions` - Predict future emissions
-- `POST /api/v1/ml/predict/trends` - Predict sustainability trends
-- `GET /api/v1/ml/models/status` - Get ML model status
-
-## Data Models
-
-### Sustainability Metrics
-- **Carbon Footprint**: CO2 emissions by category and source
-- **Energy Consumption**: Electricity, gas, renewable energy usage
-- **Waste Generation**: Waste by type, recycling rates, disposal methods
-- **Water Usage**: Water consumption, efficiency metrics
-- **Supply Chain**: Supplier sustainability scores, transportation emissions
-
-### AI/ML Models
-- **Sustainability Score**: Weighted index (0-100) calculation
-- **Emission Predictions**: Time series forecasting using Prophet
-- **Trend Analysis**: Pattern recognition and anomaly detection
-- **Recommendation Engine**: AI-powered improvement suggestions
-
-### API Response Models
-- **SustainabilityResponse**: Score, metrics, and recommendations
-- **AIInsightResponse**: Natural language insights and charts
-- **MLPredictionResponse**: Future trends and predictions
-- **UploadResponse**: File processing status and results
-
-## Database
-
-The backend uses **Supabase (PostgreSQL)** to store:
-- **Sustainability Data**: Raw and processed sustainability metrics
-- **User Sessions**: Authentication and user preferences
-- **Processing Results**: Calculated scores and AI insights
-- **Historical Trends**: Time-series data for ML predictions
-- **File Metadata**: Upload history and processing status
+1. **Primary**: Supabase PostgreSQL Database
+2. **Fallback**: Local CSV file (`sustainability_dataset.csv`)
+3. **Last Resort**: Generated sample data for testing
 
 ### Database Schema
-- **sustainability_data**: Raw sustainability metrics
-- **calculated_scores**: Processed sustainability scores
-- **ai_insights**: AI-generated recommendations
-- **ml_predictions**: ML model predictions
-- **user_sessions**: User authentication and preferences
+The system expects a table with the following structure:
+- `Timestamp` - DateTime column for time series data
+- `CO2_Emissions_kg` - CO2 emissions in kilograms
+- `Energy_Consumption_kWh` - Energy consumption in kWh
+- `Waste_Generated_kg` - Waste generated in kilograms
+- `Heat_Generation_MWh` - Heat generation in MWh
+- `Electricity_Generation_MWh` - Electricity generation in MWh
 
-## Environment Variables
+The system automatically calculates a `Sustainability_Score` based on available metrics.
 
-Create a `.env` file in the root of the Backend directory:
+## ⚙️ Configuration
+
+### Environment Variables
+Configure the following environment variables (defaults provided):
 
 ```env
-# Database
-SUPABASE_URL=your_supabase_url
-SUPABASE_KEY=your_supabase_anon_key
-DATABASE_URL=your_postgresql_connection_string
+# Database Configuration
+DB_USERNAME=postgres.bmwsulkktotsdxrhxlwp
+DB_PASSWORD=GreenView1234
+DB_HOST=aws-1-eu-west-3.pooler.supabase.com
+DB_PORT=5432
+DB_NAME=postgres
+TABLE_NAME=sustainability_table
 
-# AI/ML
-OPENAI_API_KEY=your_openai_api_key
-OPENAI_MODEL=gpt-3.5-turbo
-
-# Application
-DEBUG=True
+# Application Configuration
 PORT=8000
 HOST=0.0.0.0
-
-# Security
-SECRET_KEY=your_secret_key
-JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# Optional
-REDIS_URL=your_redis_url
+DEBUG=True
 ```
 
-## Data Processing Pipeline
+### Database Connection
+The system automatically handles database connectivity with fallback mechanisms:
+- Primary: Supabase PostgreSQL connection
+- Fallback: Local CSV file processing
+- Testing: Generated sample data
 
-1. **Data Ingestion**: Receive CSV files or API data
-2. **Validation**: Validate data format, completeness, and quality
-3. **Sustainability Calculation**: Compute weighted sustainability score (0-100)
-4. **AI Processing**: Generate insights using OpenAI API + LangChain
-5. **ML Analysis**: Run predictions using scikit-learn + Prophet
-6. **Storage**: Store results in Supabase database
-7. **API Response**: Serve processed data to frontend
+## 🧪 Testing
 
-### Key Services
-
-#### Sustainability Service
-- **Score Calculation**: Weighted algorithm for sustainability index
-- **Metrics Processing**: Energy, emissions, waste, water analysis
-- **Benchmarking**: Compare against industry standards
-
-#### AI Service
-- **Natural Language Processing**: Convert data insights to readable text
-- **Recommendation Engine**: Suggest improvement actions
-- **What-If Simulations**: Model scenario changes and score updates
-
-#### ML Service
-- **Time Series Forecasting**: Predict future emissions trends
-- **Anomaly Detection**: Identify unusual patterns in data
-- **Trend Analysis**: Long-term sustainability trajectory
-
-## Testing
-
-Run tests:
+### Run Test Suite
 ```bash
-# Run all tests
-pytest
-
-# Run with coverage
-pytest --cov=app
-
-# Run specific test file
-pytest tests/test_sustainability_service.py
+# Run comprehensive endpoint tests
+python test_endpoints.py
 
 # Run with verbose output
-pytest -v
+python -m pytest test_endpoints.py -v
 ```
 
-## API Documentation
+### Test Coverage
+The test suite covers:
+- ✅ AI Copilot natural language processing
+- ✅ ML Predictions forecasting accuracy
+- ✅ Database connectivity and fallback
+- ✅ Error handling and edge cases
+- ✅ API response validation
 
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-- **OpenAPI Schema**: http://localhost:8000/openapi.json
+## 📈 Usage Examples
 
-## Development Guidelines
-
-1. **Code Style**: Follow PEP 8 and use Black for formatting
-2. **Type Hints**: Use Python type hints throughout
-3. **Testing**: Write unit tests for all services and endpoints
-4. **Documentation**: Update API docs and README as needed
-5. **Error Handling**: Implement proper error handling and logging
-
-## Docker Deployment
-
-Build and run with Docker:
+### AI Copilot - Natural Language Queries
 ```bash
-# Build image
+curl -X POST "http://localhost:8000/api/v1/ai-copilot/chat" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What will be the CO2 emissions after 30 days using xgboost?"}'
+```
+
+**Response:**
+```json
+{
+  "metric": "CO2 Emissions kg",
+  "model": "XGBOOST",
+  "days_ahead": 30,
+  "prediction": 1250.45,
+  "current_value": 1200.30,
+  "change": 50.15,
+  "percentage_change": 4.2,
+  "change_label": "increase",
+  "forecast_data": [...]
+}
+```
+
+### ML Predictions - Multi-Model Forecasting
+```bash
+curl -X POST "http://localhost:8000/api/v1/ml-predictions/forecast" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "metric": "CO2_Emissions_kg",
+    "forecast_days": 30,
+    "models": ["xgboost", "lightgbm"]
+  }'
+```
+
+### Sustainability Score
+```bash
+curl -X GET "http://localhost:8000/api/v1/ml-predictions/sustainability-score"
+```
+
+## 🐳 Docker Deployment
+
+### Build and Run
+```bash
+# Build Docker image
 docker build -t sustainability-backend .
 
 # Run container
 docker run -p 8000:8000 --env-file .env sustainability-backend
 ```
 
-## Contributing
+### Docker Compose (if available)
+```yaml
+version: '3.8'
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - TABLE_NAME=${TABLE_NAME}
+```
+
+## 🚀 Deployment Options
+
+### Railway Deployment
+The project includes `railway.json` and `Procfile` for Railway deployment:
+```bash
+# Deploy to Railway
+railway login
+railway init
+railway up
+```
+
+### Vercel Deployment
+Configured with `vercel.json` for serverless deployment:
+```bash
+# Deploy to Vercel
+vercel --prod
+```
+
+## 🔧 Development
+
+### Code Structure
+- **Modular Design**: Each API endpoint group is in its own module
+- **Error Handling**: Comprehensive error handling with meaningful messages
+- **Type Safety**: Full Pydantic model validation
+- **Documentation**: Auto-generated API documentation
+
+### Adding New Features
+1. Create new endpoint modules in `app/api/v1/`
+2. Add request/response models using Pydantic
+3. Implement business logic with proper error handling
+4. Add tests to `test_endpoints.py`
+5. Update this README with new endpoints
+
+### Code Quality
+- **Type Hints**: Full Python type annotations
+- **Error Handling**: Comprehensive exception handling
+- **Logging**: Structured logging for debugging
+- **Testing**: Comprehensive test coverage
+
+## 📊 Performance
+
+### Optimization Features
+- **Model Caching**: ML models are cached for faster predictions
+- **Data Fallback**: Multiple data sources ensure reliability
+- **Async Processing**: Non-blocking API operations
+- **Memory Efficient**: Optimized data processing pipelines
+
+### Monitoring
+- **Health Checks**: All services have health check endpoints
+- **Error Tracking**: Comprehensive error logging and reporting
+- **Performance Metrics**: Built-in performance monitoring
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Follow development guidelines
-4. Write comprehensive tests
-5. Update documentation
-6. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## License
+## 📄 License
 
 This project is part of the Wärtsilä Sustainability Intelligence Platform hackathon challenge.
+
+## 🆘 Support
+
+For support and questions:
+- Check the API documentation at `/docs`
+- Review the test suite for usage examples
+- Check the health endpoints for service status
+- Review error messages for troubleshooting guidance
+
+## ✅ Status
+
+- ✅ AI Copilot API - Fully functional
+- ✅ ML Predictions API - Fully functional
+- ✅ Database integration - Working with fallback
+- ✅ Multiple ML models - XGBoost, LightGBM, RandomForest
+- ✅ Natural language processing - Working
+- ✅ Comprehensive testing - Complete
+- ✅ Docker deployment - Ready
+- ✅ Cloud deployment - Railway & Vercel ready
+
+## 🎯 Production Ready
+
+The platform is fully functional and ready for production deployment with comprehensive error handling, fallback mechanisms, and monitoring capabilities.
