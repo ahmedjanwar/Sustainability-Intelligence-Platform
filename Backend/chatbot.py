@@ -5,133 +5,166 @@ from xgboost import XGBRegressor
 from lightgbm import LGBMRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
+from sqlalchemy import create_engine
 import re
 
+# ----------------------------
+# 🔌 Supabase DB Connection
+# ----------------------------
+username = 'postgres.bmwsulkktotsdxrhxlwp'
+password = 'GreenView1234'
+host = 'aws-1-eu-west-3.pooler.supabase.com'
+port = '5432'
+database = 'postgres'
+table_name = 'sustainability_table'
+
+db_url = f'postgresql://{username}:{password}@{host}:{port}/{database}'
+engine = create_engine(db_url)
+
+# ----------------------------
+# 🧠 App Config
+# ----------------------------
 st.set_page_config(page_title="GreenView Chatbot", layout="wide")
-
 st.title("💬 GreenView AI Copilot 🤖")
-st.markdown("Ask me questions like:")
-st.markdown("- `'20 days baad CO2 emissions kya hon gi XGBoost se?'`")
-st.markdown("- `'LightGBM se Waste 90 din baad kitni hogi?'`")
-st.markdown("- `'Sustainability Score 180 days ke baad?'`")
 
-uploaded_file = st.file_uploader("📤 Upload your sustainability CSV file", type=["csv"])
+# ----------------------------
+# 📥 Load Data
+# ----------------------------
+@st.cache_data
+def load_data():
+    return pd.read_sql(f"SELECT * FROM {table_name}", engine)
 
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+try:
+    df = load_data()
+except Exception as e:
+    st.error(f"Failed to connect to Supabase: {e}")
+    st.stop()
 
-    # Time engineering
-    df['Timestamp'] = pd.to_datetime(df['Timestamp'])
-    df['Year'] = df['Timestamp'].dt.year
-    df['Month'] = df['Timestamp'].dt.month
-    df['DayOfYear'] = df['Timestamp'].dt.dayofyear
-    df['Elapsed_Days'] = (df['Timestamp'] - df['Timestamp'].min()).dt.days
+if 'Timestamp' not in df.columns:
+    st.error("Missing 'Timestamp' column in your table.")
+    st.stop()
 
-    # Sustainability Score
-    def calculate_sustainability_score(row):
-        weights = {
-            'CO2_Emissions_kg': -0.5,
-            'Energy_Consumption_kWh': -0.3,
-            'Waste_Generated_kg': -0.2
-        }
-        score = 0
-        for feature, weight in weights.items():
-            if feature in row:
-                score += weight * row[feature]
-        return score
+df['Timestamp'] = pd.to_datetime(df['Timestamp'])
+df['Year'] = df['Timestamp'].dt.year
+df['Month'] = df['Timestamp'].dt.month
+df['DayOfYear'] = df['Timestamp'].dt.dayofyear
+df['Elapsed_Days'] = (df['Timestamp'] - df['Timestamp'].min()).dt.days
 
-    df['Sustainability_Score'] = df.apply(calculate_sustainability_score, axis=1)
-    scaler = MinMaxScaler()
-    df['Sustainability_Score'] = scaler.fit_transform(df[['Sustainability_Score']])
+# Sustainability Score
+def calculate_sustainability_score(row):
+    weights = {
+        'CO2_Emissions_kg': -0.5,
+        'Energy_Consumption_kWh': -0.3,
+        'Waste_Generated_kg': -0.2
+    }
+    return sum(row.get(k, 0) * w for k, w in weights.items())
 
-    # Features for prediction
+df['Sustainability_Score'] = df.apply(calculate_sustainability_score, axis=1)
+df['Sustainability_Score'] = MinMaxScaler().fit_transform(df[['Sustainability_Score']])
+
+# ----------------------------
+# 💬 Chat Section
+# ----------------------------
+st.subheader("💡 Ask a question in natural language")
+question = st.text_input("🔎 Example: 'What will be the electricity generation after 90 days using lightgbm?'")
+
+# Supported metrics and aliases
+metric_map = {
+    "co2": "CO2_Emissions_kg",
+    "waste": "Waste_Generated_kg",
+    "score": "Sustainability_Score",
+    "sustainability": "Sustainability_Score",
+    "heat": "Heat_Generation_MWh",
+    "electricity": "Electricity_Generation_MWh",
+    "power": "Electricity_Generation_MWh"
+}
+
+if question:
+    # NLP-style parsing
+    question_lower = question.lower()
+    days_match = re.search(r"(\d+)\s*(day|days|din)", question_lower)
+    days_ahead = int(days_match.group(1)) if days_match else 30
+
+    model_name = "lightgbm" if "lightgbm" in question_lower else "xgboost"
+
+    target = None
+    for key, col in metric_map.items():
+        if key in question_lower:
+            target = col
+            break
+
+    if not target:
+        st.error("⚠️ Couldn't detect the metric you're asking about (CO2, waste, score, etc.)")
+        st.stop()
+
+    # Validate column
+    if target not in df.columns:
+        st.error(f"'{target}' column not found in your dataset.")
+        st.stop()
+
+    # Model training
     feature_cols = ['Energy_Consumption_kWh', 'Elapsed_Days', 'Month', 'DayOfYear']
+    data = df.dropna(subset=feature_cols + [target])
+    X = data[feature_cols]
+    y = data[target]
 
-    # Chatbot input
-    question = st.text_input("💬 Ask your question")
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    if question:
-        # Parse the question
-        time_match = re.search(r"(\d+)\s*(days|din)", question)
-        model_match = "xgboost" if "xgboost" in question.lower() else "lightgbm" if "lightgbm" in question.lower() else "xgboost"
-        metric_map = {
-            "co2": "CO2_Emissions_kg",
-            "waste": "Waste_Generated_kg",
-            "score": "Sustainability_Score",
-            "sustainability": "Sustainability_Score"
-        }
-        metric_match = None
-        for keyword, col_name in metric_map.items():
-            if keyword in question.lower():
-                metric_match = col_name
-                break
+    model = XGBRegressor(n_estimators=100) if model_name == "xgboost" else LGBMRegressor(n_estimators=100)
+    model.fit(X_train, y_train)
 
-        # Validate
-        if not time_match or not metric_match:
-            st.error("⚠️ Please ask a question like: '30 din baad CO2 kya hoga XGBoost ke mutabiq?'")
-            st.stop()
+    # Forecast
+    future_day = df['Elapsed_Days'].max() + days_ahead
+    future_month = (df['Month'].iloc[-1] + (days_ahead // 30)) % 12 or 12
+    future_doy = (df['DayOfYear'].iloc[-1] + days_ahead) % 365 or 365
 
-        days_ahead = int(time_match.group(1))
-        model_name = model_match
-        target = metric_match
+    future_input = pd.DataFrame([{
+        'Energy_Consumption_kWh': df['Energy_Consumption_kWh'].iloc[-1],
+        'Elapsed_Days': future_day,
+        'Month': future_month,
+        'DayOfYear': future_doy
+    }])
 
-        # Prepare data
-        data = df.dropna(subset=feature_cols + [target])
-        X = data[feature_cols]
-        y = data[target]
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    prediction = model.predict(future_input)[0]
+    if target == "Sustainability_Score":
+        prediction *= 100
 
-        if model_name == "xgboost":
-            model = XGBRegressor(n_estimators=100, learning_rate=0.1)
-        else:
-            model = LGBMRegressor(n_estimators=100, learning_rate=0.1)
+    current_value = df[target].iloc[-1]
+    if target == "Sustainability_Score":
+        current_value *= 100
 
-        model.fit(X_train, y_train)
+    change = prediction - current_value
+    pct_change = (change / current_value) * 100 if current_value else 0
+    change_label = "increase" if change > 0 else "decrease"
 
-        # Future point
-        future_day = df['Elapsed_Days'].max() + days_ahead
-        future_month = (df['Month'].iloc[-1] + int(days_ahead / 30)) % 12 or 12
-        future_day_of_year = ((df['DayOfYear'].iloc[-1] + days_ahead) % 365)
+    # 🔥 Response
+    st.markdown(f"""
+    ### 📊 Forecast Summary:
+    - **Metric:** `{target.replace('_', ' ')}`
+    - **Model:** `{model_name.upper()}`
+    - **Days Ahead:** `{days_ahead}`
+    
+    #### 💬 Predicted value after {days_ahead} days:  
+    **➡️ {prediction:.2f} ({change_label} of {abs(change):.2f}, {pct_change:.1f}%) from today**
+    """)
 
-        future_input = pd.DataFrame([{
+    # 📈 Optional chart
+    st.subheader("📉 Simulated Forecast Trend")
+    chart_preds = []
+    for d in range(0, days_ahead + 1, max(1, days_ahead // 15)):
+        ed = df['Elapsed_Days'].max() + d
+        m = (df['Month'].iloc[-1] + (d // 30)) % 12 or 12
+        doy = (df['DayOfYear'].iloc[-1] + d) % 365 or 365
+        row = pd.DataFrame([{
             'Energy_Consumption_kWh': df['Energy_Consumption_kWh'].iloc[-1],
-            'Elapsed_Days': future_day,
-            'Month': future_month,
-            'DayOfYear': future_day_of_year
+            'Elapsed_Days': ed,
+            'Month': m,
+            'DayOfYear': doy
         }])
-
-        prediction = model.predict(future_input)[0]
+        pred = model.predict(row)[0]
         if target == "Sustainability_Score":
-            prediction *= 100
+            pred *= 100
+        chart_preds.append((d, pred))
 
-        # Final response
-        st.success(f"📈 Predicted `{target.replace('_', ' ')}` after **{days_ahead} days** using **{model_name.upper()}**:")
-        st.metric(label="Forecasted Value", value=f"{prediction:.2f}")
-
-        # Optional: Chart
-        st.subheader("📉 Predicted Trend (Optional Simulation)")
-
-        future_range = list(range(0, days_ahead + 1, int(days_ahead / 10) or 1))
-        chart_preds = []
-
-        for d in future_range:
-            day = df['Elapsed_Days'].max() + d
-            month = (df['Month'].iloc[-1] + int(d / 30)) % 12 or 12
-            doy = ((df['DayOfYear'].iloc[-1] + d) % 365)
-            row = {
-                'Energy_Consumption_kWh': df['Energy_Consumption_kWh'].iloc[-1],
-                'Elapsed_Days': day,
-                'Month': month,
-                'DayOfYear': doy
-            }
-            pred = model.predict(pd.DataFrame([row]))[0]
-            if target == "Sustainability_Score":
-                pred *= 100
-            chart_preds.append((d, pred))
-
-        # Plot chart
-        df_chart = pd.DataFrame(chart_preds, columns=["Days Ahead", "Prediction"])
-        st.line_chart(df_chart.set_index("Days Ahead"))
-
-else:
-    st.info("👆 Please upload your sustainability CSV to begin asking questions.")
+    chart_df = pd.DataFrame(chart_preds, columns=["Days Ahead", "Prediction"])
+    st.line_chart(chart_df.set_index("Days Ahead"))

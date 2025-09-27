@@ -1,1 +1,1 @@
-streamlit run "c:/Users/mzees/Downloads/JUNCTION GITHUB/Sustainability-Intelligence-Platform/Backend/chatbot.py"
+$env:OPENAI_API_KEY="sk-your-real-key-here"streamlit run "c:/Users/mzees/Downloads/JUNCTION GITHUB/Sustainability-Intelligence-Platform/Backend/chatbot.py"
