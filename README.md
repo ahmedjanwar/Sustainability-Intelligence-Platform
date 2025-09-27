@@ -152,9 +152,9 @@ This project is part of the Wärtsilä Sustainability Intelligence Platform hack
 
 ## 🔗 Links
 
-- [Live Demo](https://your-demo-url.com)
+- [Live Demo](https://sustainability-intelligence-platfor.vercel.app/)
 - [Pitch Deck](docs/pitch-deck.pdf)
-- [API Documentation](http://localhost:8000/docs)
+- [API Documentation](https://github.com/ahmedjanwar/Sustainability-Intelligence-Platform/tree/main/docs)
 
 
 
