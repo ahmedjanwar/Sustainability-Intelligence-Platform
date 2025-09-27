@@ -150,56 +150,19 @@ export const useFileUpload = (onUploadSuccess?: (datasetId: string) => void) => 
 
   const saveDatasetToSupabase = async (file: File, processedData: ProcessedData) => {
     try {
-      // Check if a dataset with the same filename already exists
-      const { data: existingDatasets, error: checkError } = await supabase
-        .from('datasets')
-        .select('id, filename, original_filename')
-        .eq('original_filename', file.name)
-        .eq('status', 'processed');
-
-      if (checkError) throw checkError;
-
-      if (existingDatasets && existingDatasets.length > 0) {
-        // Ask user if they want to replace or create new version
-        const shouldReplace = confirm(
-          `A dataset with the filename "${file.name}" already exists. Do you want to replace it with the new data?`
-        );
-        
-        if (shouldReplace) {
-          // Delete existing dataset and its data
-          const existingDataset = existingDatasets[0];
-          
-          // Delete dataset data first
-          await supabase
-            .from('dataset_data')
-            .delete()
-            .eq('dataset_id', existingDataset.id);
-          
-          // Delete sustainability metrics
-          await supabase
-            .from('sustainability_metrics')
-            .delete()
-            .eq('dataset_id', existingDataset.id);
-          
-          // Delete the dataset
-          await supabase
-            .from('datasets')
-            .delete()
-            .eq('id', existingDataset.id);
-        } else {
-          // Create with timestamp suffix
-          const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-          const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
-          const extension = file.name.split('.').pop();
-          file = new File([file], `${nameWithoutExt}_${timestamp}.${extension}`, { type: file.type });
-        }
-      }
+      // Always create unique dataset names to support multiple datasets
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+      const extension = file.name.split('.').pop();
+      const uniqueFilename = `${nameWithoutExt}_${timestamp}.${extension}`;
+      
+      // Create unique filename for dataset storage
       // Create dataset record
       const { data: dataset, error: datasetError } = await supabase
         .from('datasets')
         .insert({
-          filename: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
-          original_filename: file.name,
+          filename: uniqueFilename.replace(/\.[^/.]+$/, ""), // Remove extension
+          original_filename: file.name, // Keep original filename for display
           file_size_mb: Number((file.size / (1024 * 1024)).toFixed(2)),
           file_type: file.name.split('.').pop()?.toLowerCase() || 'csv',
           source_type: 'upload',
@@ -251,7 +214,7 @@ export const useFileUpload = (onUploadSuccess?: (datasetId: string) => void) => 
       }
 
       // Transform and save to sustainability_table
-      await transformAndSaveSustainabilityData(file, dataset.id, processedData);
+      await transformAndSaveSustainabilityData(file, processedData);
 
       // Update dataset status to completed
       const { error: updateError } = await supabase
@@ -320,7 +283,7 @@ export const useFileUpload = (onUploadSuccess?: (datasetId: string) => void) => 
     return columnMappings[normalizedColumn] || null;
   };
 
-  const transformAndSaveSustainabilityData = async (file: File, datasetId: string, processedData: ProcessedData) => {
+  const transformAndSaveSustainabilityData = async (file: File, processedData: ProcessedData) => {
     try {
       // Map column headers to sustainability_table columns
       const columnMapping: Record<string, string> = {};

@@ -168,21 +168,21 @@ export const MLPredictions: React.FC = () => {
 
       {/* Results */}
       {predictions && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Current Values */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Current Values</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                <div className="p-4 border rounded-lg bg-card/50">
                   <Label className="font-medium">Current {predictions.metric.replace('_', ' ')}</Label>
-                  <p className="text-2xl font-bold text-primary">{predictions.current_value.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-primary mt-2">{predictions.current_value.toLocaleString()}</p>
                 </div>
-                <div>
+                <div className="p-4 border rounded-lg bg-card/50">
                   <Label className="font-medium">Sustainability Score</Label>
-                  <p className="text-2xl font-bold text-green-600">{predictions.sustainability_score.toFixed(1)}%</p>
+                  <p className="text-2xl font-bold text-green-600 mt-2">{predictions.sustainability_score.toFixed(1)}%</p>
                 </div>
               </div>
             </CardContent>
@@ -193,12 +193,12 @@ export const MLPredictions: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-lg">Latest Predictions ({predictions.forecast_days} days ahead)</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Object.entries(predictions.latest_predictions).map(([modelName, value]: [string, number]) => (
-                  <div key={modelName} className="p-4 border rounded-lg">
+                  <div key={modelName} className="p-6 border rounded-lg bg-card/50">
                     <div className="text-sm font-medium text-muted-foreground">{modelName.toUpperCase()}</div>
-                    <div className="text-2xl font-bold">{value.toLocaleString()}</div>
+                    <div className="text-2xl font-bold mt-2">{value.toLocaleString()}</div>
                   </div>
                 ))}
               </div>
@@ -213,26 +213,26 @@ export const MLPredictions: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-lg">Detailed Predictions</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="p-6">
+              <div className="space-y-6">
                 {Object.entries(predictions.predictions).map(([modelName, modelPredictions]: [string, any[]]) => (
-                  <div key={modelName}>
-                    <h4 className="font-medium mb-2">{modelName.toUpperCase()} Predictions</h4>
-                    <div className="overflow-x-auto">
+                  <div key={modelName} className="space-y-3">
+                    <h4 className="font-medium text-lg">{modelName.toUpperCase()} Predictions</h4>
+                    <div className="overflow-x-auto border rounded-lg">
                       <table className="w-full text-sm">
-                        <thead>
+                        <thead className="bg-muted/50">
                           <tr className="border-b">
-                            <th className="text-left p-2">Date</th>
-                            <th className="text-right p-2">Days Ahead</th>
-                            <th className="text-right p-2">Prediction</th>
+                            <th className="text-left p-4 font-medium">Date</th>
+                            <th className="text-right p-4 font-medium">Days Ahead</th>
+                            <th className="text-right p-4 font-medium">Prediction</th>
                           </tr>
                         </thead>
                         <tbody>
                           {modelPredictions.slice(0, 10).map((prediction: any, index: number) => (
-                            <tr key={index} className="border-b">
-                              <td className="p-2">{format(new Date(prediction.date), 'MMM dd, yyyy')}</td>
-                              <td className="p-2 text-right">{prediction.days_ahead}</td>
-                              <td className="p-2 text-right font-medium">{prediction.prediction.toLocaleString()}</td>
+                            <tr key={index} className="border-b hover:bg-muted/30">
+                              <td className="p-4">{format(new Date(prediction.date), 'MMM dd, yyyy')}</td>
+                              <td className="p-4 text-right">{prediction.days_ahead}</td>
+                              <td className="p-4 text-right font-medium">{prediction.prediction.toLocaleString()}</td>
                             </tr>
                           ))}
                         </tbody>

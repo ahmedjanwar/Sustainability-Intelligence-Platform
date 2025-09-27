@@ -50,7 +50,14 @@ const AICopilot = () => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      if (scrollAreaRef.current) {
+        const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (scrollElement) {
+          scrollElement.scrollTop = scrollElement.scrollHeight;
+        }
+      }
+    }, 100);
   };
 
   useEffect(() => {
@@ -166,7 +173,7 @@ const AICopilot = () => {
       </div>
 
       {/* Chat Interface */}
-      <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm h-[600px] flex flex-col">
+      <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm h-[70vh] sm:h-[75vh] max-h-[800px] min-h-[400px] sm:min-h-[500px] flex flex-col overflow-hidden">
         <CardHeader className="border-b border-border/50 bg-gradient-to-r from-primary/5 to-primary/10">
           <CardTitle className="flex items-center gap-3">
             <div className="relative">
@@ -185,10 +192,10 @@ const AICopilot = () => {
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="flex-1 flex flex-col p-0">
+        <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
           {/* Dataset Selection */}
           {datasets.length > 0 && (
-            <div className="p-4 border-b border-border/50 bg-gradient-to-r from-muted/20 to-muted/40">
+            <div className="p-4 border-b border-border/50 bg-gradient-to-r from-muted/20 to-muted/40 flex-shrink-0">
               <div className="flex items-center gap-2 mb-3">
                 <div className="p-1 bg-primary/10 rounded-md">
                   <Database className="h-4 w-4 text-primary" />
@@ -211,9 +218,10 @@ const AICopilot = () => {
             </div>
           )}
 
-          {/* Messages */}
-          <ScrollArea className="flex-1 h-full overflow-hidden" ref={scrollAreaRef}>
-            <div className="p-4 space-y-4 min-h-full">
+          {/* Messages - Scrollable Area */}
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full" ref={scrollAreaRef}>
+              <div className="p-4 space-y-4">
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -227,14 +235,14 @@ const AICopilot = () => {
                   
                   <div className={`max-w-[75%] space-y-2 ${message.type === 'user' ? 'items-end' : 'items-start'} flex flex-col`}>
                     <div
-                      className={`rounded-2xl px-5 py-4 shadow-sm ${
+                      className={`rounded-2xl px-5 py-4 shadow-sm break-words ${
                         message.type === 'user'
                           ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-primary/20'
                           : 'bg-card/80 backdrop-blur-sm text-foreground border border-border/50 shadow-md'
                       }`}
                     >
                       <div className="prose prose-sm max-w-none">
-                        <p className="text-sm whitespace-pre-line leading-relaxed mb-0">{message.content}</p>
+                        <p className="text-sm whitespace-pre-wrap leading-relaxed mb-0 break-words">{message.content}</p>
                       </div>
                     </div>
                     
@@ -252,13 +260,13 @@ const AICopilot = () => {
                           </div>
                           Suggested actions:
                         </p>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2 max-w-full">
                           {message.suggestions.map((suggestion, index) => (
                             <Button
                               key={index}
                               variant="outline"
                               size="sm"
-                              className="text-xs h-8 bg-card/50 border-border/50 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 shadow-sm hover:shadow-md"
+                              className="text-xs h-8 bg-card/50 border-border/50 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
                               onClick={() => handleSendMessage(suggestion)}
                             >
                               {suggestion}
@@ -294,11 +302,12 @@ const AICopilot = () => {
               )}
 
               <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
+              </div>
+            </ScrollArea>
+          </div>
 
           {/* Input */}
-          <div className="border-t border-border/50 bg-gradient-to-r from-muted/10 to-muted/20 p-4">
+          <div className="border-t border-border/50 bg-gradient-to-r from-muted/10 to-muted/20 p-4 flex-shrink-0">
             <div className="flex gap-3">
               <Input
                 placeholder="Ask about your sustainability metrics..."
