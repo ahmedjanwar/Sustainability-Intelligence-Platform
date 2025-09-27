@@ -1,0 +1,9 @@
+Backend/
+Database/
+docs/
+tests/
+old-frontend-README.md
+*.csv
+*.json
+!Frontend/package.json
+!Frontend/package-lock.json
