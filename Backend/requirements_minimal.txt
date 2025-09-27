@@ -1,0 +1,27 @@
+# Essential dependencies for Sustainability Intelligence Platform
+
+# FastAPI and web framework
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# Database
+sqlalchemy>=2.0.23
+psycopg2-binary>=2.9.9
+
+# Data processing and ML
+pandas>=2.2.0
+numpy>=1.26.0
+scikit-learn>=1.4.0
+xgboost>=2.0.2
+lightgbm>=4.1.0
+
+# HTTP requests
+requests>=2.31.0
+
+# Configuration
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+
+# Utilities
+python-dateutil>=2.8.2

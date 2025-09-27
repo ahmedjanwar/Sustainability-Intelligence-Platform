@@ -61,7 +61,7 @@ Backend/
 ├── app/
 │   ├── api/           # FastAPI routes and endpoints
 │   │   ├── v1/        # API version 1
-│   │   │   ├── sustainability.py  # Sustainability endpoints
+│   │   │   ├── ai   # Sustainability endpoints
 │   │   │   ├── ai_copilot.py      # AI Copilot endpoints
 │   │   │   ├── ml_predictions.py  # ML prediction endpoints
 │   │   │   └── data_upload.py     # File upload endpoints
@@ -95,7 +95,6 @@ Backend/
 
 ### Core Endpoints
 
-- `GET /api/v1/health` - Health check
 - `GET /api/v1/sustainability/score` - Get sustainability score
 - `POST /api/v1/sustainability/calculate` - Calculate sustainability score
 - `GET /api/v1/sustainability/metrics` - Get sustainability metrics
