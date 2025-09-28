@@ -12,7 +12,7 @@ interface FileUploadProps {
 }
 
 const FileUpload = ({ onFilesUploaded, onUploadSuccess }: FileUploadProps) => {
-  const { uploadedFiles, uploadFile, removeFile, clearAll } = useFileUpload(onUploadSuccess);
+  const { uploadedFiles, uploadFile, forceUploadFile, removeFile, clearAll } = useFileUpload(onUploadSuccess);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     acceptedFiles.forEach(file => {
@@ -135,7 +135,28 @@ const FileUpload = ({ onFilesUploaded, onUploadSuccess }: FileUploadProps) => {
                           </div>
                         )}
                         {fileData.error && (
-                          <p className="text-xs text-destructive">{fileData.error}</p>
+                          <div className="space-y-2">
+                            <p className="text-xs text-destructive">{fileData.error}</p>
+                            {fileData.error.includes('already exists') || fileData.error.includes('Similar dataset found') ? (
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    forceUploadFile(fileData.file);
+                                  }}
+                                  className="text-xs h-6 px-2"
+                                >
+                                  Force Upload
+                                </Button>
+                                <span className="text-xs text-muted-foreground">
+                                  Upload anyway with timestamp
+                                </span>
+                              </div>
+                            ) : null}
+                          </div>
                         )}
                       </div>
                     </div>
