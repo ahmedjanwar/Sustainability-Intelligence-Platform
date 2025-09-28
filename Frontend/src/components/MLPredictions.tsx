@@ -14,7 +14,7 @@ export const MLPredictions: React.FC = () => {
   const [filters, setFilters] = useState<PredictionFilters>({
     metric: 'CO2_Emissions_kg',
     forecast_days: 30,
-    models: ['xgboost', 'lightgbm'],
+    models: ['xgboost', 'lightgbm'], // Always use both models
   });
 
   const handleGeneratePredictions = () => {
@@ -24,7 +24,8 @@ export const MLPredictions: React.FC = () => {
   const handleFilterChange = (key: keyof PredictionFilters, value: string | string[]) => {
     setFilters((prev: PredictionFilters) => ({ 
       ...prev, 
-      [key]: key === 'forecast_days' ? parseInt(value as string) : value 
+      [key]: key === 'forecast_days' ? parseInt(value as string) : value,
+      models: ['xgboost', 'lightgbm'] // Always keep both models
     }));
   };
 
@@ -71,7 +72,7 @@ export const MLPredictions: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Metric Selection */}
             <div className="space-y-2">
               <Label>Metric to Predict</Label>
@@ -111,25 +112,17 @@ export const MLPredictions: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
-            {/* Models */}
-            <div className="space-y-2">
-              <Label>ML Models</Label>
-              <Select
-                value={filters.models?.join(',') || 'xgboost,lightgbm'}
-                onValueChange={(value: string) => handleFilterChange('models', value.split(','))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="xgboost">XGBoost Only</SelectItem>
-                  <SelectItem value="lightgbm">LightGBM Only</SelectItem>
-                  <SelectItem value="xgboost,lightgbm">XGBoost + LightGBM</SelectItem>
-                  <SelectItem value="random_forest">Random Forest</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Model Information */}
+          <div className="p-4 bg-muted/30 rounded-lg border">
+            <div className="flex items-center gap-2 mb-2">
+              <Brain className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">ML Models</span>
             </div>
+            <p className="text-sm text-muted-foreground">
+              Using both XGBoost and LightGBM models for comprehensive predictions
+            </p>
           </div>
 
           <div className="flex gap-2 pt-4">
